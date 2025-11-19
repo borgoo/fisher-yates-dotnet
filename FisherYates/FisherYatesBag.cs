@@ -1,6 +1,6 @@
 ﻿namespace FisherYates;
 
-public class FisherYates : IFisherYatesBag
+public class FisherYatesBag : IFisherYatesBag
 {
     private int _remainingCount;
     private readonly int _min;
@@ -10,10 +10,11 @@ public class FisherYates : IFisherYatesBag
     public int RemainingCount => _remainingCount;
 
 
-    public FisherYates(int min, int max)
+    public FisherYatesBag(int min, int max)
     {
         if (max < min) throw new ArgumentException($"{nameof(max)} must be greater or equal to {nameof(min)}.");
-
+        if(max > 1_000_000) throw new ArgumentException($"{nameof(max)} is too large. Maximum allowed is 1,000,000.");
+        
         _min = min;
         _max = max;
         int count = _max - _min + 1;
@@ -23,7 +24,7 @@ public class FisherYates : IFisherYatesBag
         for (int i = 0; i < count; i++) _possibleValues[i] = _min + i;
     }
 
-    public FisherYates(int max) : this(0, max) { }
+    public FisherYatesBag(int max) : this(0, max) { }
 
 
     public bool TryGetNextRandom(out int? value) {

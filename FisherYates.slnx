@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="FisherYates.Test/FisherYates.Test.csproj" />
+  <Project Path="FisherYates/FisherYates.csproj" />
+</Solution>

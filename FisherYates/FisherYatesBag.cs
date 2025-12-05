@@ -13,7 +13,7 @@ public class FisherYatesBag : IFisherYatesBag
     public FisherYatesBag(int min, int max)
     {
         if (max < min) throw new ArgumentException($"{nameof(max)} must be greater or equal to {nameof(min)}.");
-        if(max > 1_000_000) throw new ArgumentException($"{nameof(max)} is too large. Maximum allowed is 1,000,000.");
+        if((max - min + 1) > 1_000_000) throw new ArgumentException($"{nameof(max)} is too large. Maximum allowed is 1,000,000.");
         
         _min = min;
         _max = max;
@@ -25,6 +25,17 @@ public class FisherYatesBag : IFisherYatesBag
     }
 
     public FisherYatesBag(int max) : this(0, max) { }
+
+    public FisherYatesBag(IEnumerable<int> values){
+
+        HashSet<int> set = [.. values];
+        _possibleValues = new int[set.Count];
+        _remainingCount = set.Count;
+        for(int i = 0; i < set.Count; i++) _possibleValues[i] = set.ElementAt(i);
+        _min = set.Min();
+        _max = set.Max();
+
+    }
 
 
     public bool TryGetNextRandom(out int? value) {

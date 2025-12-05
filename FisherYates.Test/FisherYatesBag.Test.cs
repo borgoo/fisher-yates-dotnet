@@ -127,40 +127,44 @@ public class Tests
         fisherYates.GetAllRemainingRandomized();
     }
 
+   
     [TestCase(true)]
     [TestCase(false)]
     public void FisherYatesBag_Distribution_IsUniform_ChiSquare(bool useReset)
     {
-        //H0: The distribution is uniform
-        //H1: The distribution is not uniform
-        const int max = 3;
-        const int n = max + 1;
+        //h0: each value (0,1,2,..) appear in each position (0,1,2,..) with the same probability
+        //h1 = NOT(h0)
+        const int fisherYatesRangeMax = 4;
+        const int fisherYatesRangeSize = fisherYatesRangeMax + 1;
+        const double alpha = 0.01;
+        const int df = (fisherYatesRangeSize -1) * (fisherYatesRangeSize -1); // degrees of freedom: (size -1)^2
+        const decimal criticalValue = 32; // FROM TABLES: Chi-square critical @alpha=0.01 with 16 df (maxtrix n x n -> 5x5)
         const int trials = 200_000;
-        const double chiSquareCriticalValue = 21.666; // FROM TABLES: Chi-square critical @p=0.01 with 9 degrees of freedom (maxtrix n x n -> 4*4)
-        const double expected = trials / (double)n;
+        const decimal expected = trials / fisherYatesRangeSize;
 
-        int[,] numOfValOccurencesInPosition = new int[n, n]; //numOfValOccurencesInPosition[0,2] = how many times number 2 appeared in position 0
+        int[,] numOfValOccurencesInPosition = new int[fisherYatesRangeSize, fisherYatesRangeSize]; //numOfValOccurencesInPosition[0,2] = how many times number 2 appeared in position 0
 
-        FisherYatesBag fisherYates = new(max);
+        FisherYatesBag fisherYates = new(fisherYatesRangeMax);
         for (int t = 0; t < trials; t++)
         {
-            if(!useReset) fisherYates = new(max);
+            if(!useReset) fisherYates = new(fisherYatesRangeMax);
             int[] permutation = [..fisherYates.GetAllRandomized()];
-            for (int i = 0; i < n; i++) numOfValOccurencesInPosition[i, permutation[i]]++;
+            for (int i = 0; i < fisherYatesRangeSize; i++) numOfValOccurencesInPosition[i, permutation[i]]++;
             if (useReset) fisherYates.Reset();
         }
 
-        double chiSquare = 0;
-        for (int pos = 0; pos < n; pos++) {
-            for (int val = 0; val < n; val++) {
-                double foundOccurences = numOfValOccurencesInPosition[pos, val];
-                chiSquare += (foundOccurences - expected) * (foundOccurences - expected) / expected;
+        decimal chiSquare = 0;
+        for(int i = 0; i < fisherYatesRangeSize; i++) {
+            for (int j = 0; j < fisherYatesRangeSize; j++) {
+                decimal foundOccurences = numOfValOccurencesInPosition[i, j];
+                chiSquare += (foundOccurences - expected) * (foundOccurences - expected);
             }
-        }
+        }   
+        chiSquare /= expected;
 
-        //if chiSquare < chiSquareCriticalValue => Accept H0, otherwise reject H0 (Accept H1)
-        Assert.That(chiSquare, Is.LessThan(chiSquareCriticalValue),
-            $"With useRest = {useReset}, distribution is likely non-uniform. χ² = {chiSquare}");
+        //if chiSquare < criticalValue => Accept H0, otherwise reject H0 (Accept H1)
+        Assert.That(chiSquare, Is.LessThan(criticalValue),
+            $"With useRest = {useReset}, distribution is likely non-uniform. χ² = {chiSquare} (vs {criticalValue})");
     }
 
     [Test]
